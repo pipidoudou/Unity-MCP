@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using R3;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using static com.IvanMurzak.McpPlugin.Common.Consts.MCP.Server;
 using LogLevel = com.IvanMurzak.Unity.MCP.Runtime.Utils.LogLevel;
 
