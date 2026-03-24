@@ -28,6 +28,12 @@ namespace com.IvanMurzak.Unity.MCP.Installer
         /// </summary>
         internal static string? GetLatestAvailableVersion()
         {
+            if (Version.StartsWith("git+https"))
+            {
+                Debug.Log($"[Installer] Using Git URL directly: {Version}");
+                return Version;
+            }
+
             try
             {
                 using var client = new HttpClient();

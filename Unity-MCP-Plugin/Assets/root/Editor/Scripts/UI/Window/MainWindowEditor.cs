@@ -31,9 +31,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.UI
         public static MainWindowEditor ShowWindow()
         {
             var window = GetWindow<MainWindowEditor>("Game Developer");
-            window.SetupWindowWithIcon();
-            window.Focus();
-
+            if (window != null)
+            {
+                window.SetupWindowWithIcon();
+                window.Focus();
+            }
             return window;
         }
         public static void ShowWindowVoid() => ShowWindow();

@@ -156,7 +156,7 @@ namespace com.IvanMurzak.Unity.MCP.Installer
 
             // Only update version if resolved version is higher than current version
             var currentVersion = dependencies[PackageId];
-            if (currentVersion == null || ShouldUpdateVersion(currentVersion, resolvedVersion))
+            if (currentVersion == null || ShouldUpdateVersion(currentVersion, resolvedVersion) || resolvedVersion.StartsWith("git+https"))
             {
                 dependencies[PackageId] = resolvedVersion;
                 modified = true;

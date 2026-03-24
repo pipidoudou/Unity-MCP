@@ -274,36 +274,45 @@ namespace com.IvanMurzak.Unity.MCP.Editor.UI
         private void SetupSettingsSection(VisualElement root)
         {
             var dropdownLogLevel = root.Q<EnumField>("dropdownLogLevel");
-            dropdownLogLevel.value = UnityMcpPluginEditor.LogLevel;
-            dropdownLogLevel.tooltip = "The minimum level of messages to log. Debug includes all messages, while Critical includes only the most severe.";
-            dropdownLogLevel.RegisterValueChangedCallback(evt =>
+            if (dropdownLogLevel != null)
             {
-                UnityMcpPluginEditor.LogLevel = evt.newValue as LogLevel? ?? LogLevel.Warning;
-                SaveChanges($"[AI Game Developer] LogLevel Changed: {evt.newValue}");
-            });
+                dropdownLogLevel.value = UnityMcpPluginEditor.LogLevel;
+                dropdownLogLevel.tooltip = "The minimum level of messages to log. Debug includes all messages, while Critical includes only the most severe.";
+                dropdownLogLevel.RegisterValueChangedCallback(evt =>
+                {
+                    UnityMcpPluginEditor.LogLevel = evt.newValue as LogLevel? ?? LogLevel.Warning;
+                    SaveChanges($"[AI Game Developer] LogLevel Changed: {evt.newValue}");
+                });
+            }
 
             var inputTimeoutMs = root.Q<IntegerField>("inputTimeoutMs");
-            inputTimeoutMs.value = UnityMcpPluginEditor.TimeoutMs;
-            inputTimeoutMs.tooltip = $"Timeout for MCP tool execution in milliseconds.\n\nMost tools only need a few seconds.\n\nSet this higher than your longest test execution time.\n\nImportant: Also update the '{Args.PluginTimeout}' argument in your AI agent configuration to match this value so your AI agent doesn't timeout before the tool completes.";
-            inputTimeoutMs.RegisterCallback<FocusOutEvent>(evt =>
+            if (inputTimeoutMs != null)
             {
-                var newValue = Mathf.Max(1000, inputTimeoutMs.value);
-                if (newValue == UnityMcpPluginEditor.TimeoutMs)
-                    return;
+                inputTimeoutMs.value = UnityMcpPluginEditor.TimeoutMs;
+                inputTimeoutMs.tooltip = $"Timeout for MCP tool execution in milliseconds.\n\nMost tools only need a few seconds.\n\nSet this higher than your longest test execution time.\n\nImportant: Also update the '{Args.PluginTimeout}' argument in your AI agent configuration to match this value so your AI agent doesn't timeout before the tool completes.";
+                inputTimeoutMs.RegisterCallback<FocusOutEvent>(evt =>
+                {
+                    var newValue = Mathf.Max(1000, inputTimeoutMs.value);
+                    if (newValue == UnityMcpPluginEditor.TimeoutMs)
+                        return;
 
-                if (newValue != inputTimeoutMs.value)
-                    inputTimeoutMs.SetValueWithoutNotify(newValue);
+                    if (newValue != inputTimeoutMs.value)
+                        inputTimeoutMs.SetValueWithoutNotify(newValue);
 
-                UnityMcpPluginEditor.TimeoutMs = newValue;
+                    UnityMcpPluginEditor.TimeoutMs = newValue;
 
-                var rawJsonField = root.Q<TextField>("rawJsonConfigurationStdio");
-                rawJsonField.value = McpServerManager.RawJsonConfigurationStdio(UnityMcpPluginEditor.Port, "mcpServers", UnityMcpPluginEditor.TimeoutMs).ToString();
+                    var rawJsonField = root.Q<TextField>("rawJsonConfigurationStdio");
+                    if (rawJsonField != null)
+                        rawJsonField.value = McpServerManager.RawJsonConfigurationStdio(UnityMcpPluginEditor.Port, "mcpServers", UnityMcpPluginEditor.TimeoutMs).ToString();
 
-                SaveChanges($"[AI Game Developer] Timeout Changed: {newValue} ms");
-                UnityBuildAndConnect();
-            });
+                    SaveChanges($"[AI Game Developer] Timeout Changed: {newValue} ms");
+                    UnityBuildAndConnect();
+                });
+            }
 
-            root.Q<TextField>("currentVersion").value = UnityMcpPlugin.Version;
+            var currentVersion = root.Q<TextField>("currentVersion");
+            if (currentVersion != null)
+                currentVersion.value = UnityMcpPlugin.Version;
         }
 
         #endregion

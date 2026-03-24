@@ -19,7 +19,7 @@ namespace com.IvanMurzak.Unity.MCP.Installer
     public static partial class Installer
     {
         public const string PackageId = "com.ivanmurzak.unity.mcp";
-        public const string Version = "0.56.0";
+        public const string Version = "git+https://github.com/pipidoudou/Unity-MCP.git?path=Unity-MCP-Plugin/Assets/root#compat/older-unity-support";
 
         static Installer()
         {

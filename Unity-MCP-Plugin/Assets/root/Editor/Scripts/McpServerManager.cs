@@ -166,7 +166,18 @@ namespace com.IvanMurzak.Unity.MCP.Editor
             );
 
         public static string ExecutableZipUrl
-            => $"https://github.com/IvanMurzak/Unity-MCP/releases/download/{UnityMcpPlugin.Version}/{ExecutableName.ToLowerInvariant()}-{PlatformName}.zip";
+        {
+            get
+            {
+                // In local dev branch we can just use the latest official release binary 
+                // since server binary is rarely changed. If it is changed, you should build it locally.
+                var version = UnityMcpPlugin.Version;
+                if (version.Contains("dev") || version.Contains("alpha") || version.Contains("beta"))
+                    version = "0.56.0"; // Fallback to stable version for binary download
+                    
+                return $"https://github.com/IvanMurzak/Unity-MCP/releases/download/{version}/{ExecutableName.ToLowerInvariant()}-{PlatformName}.zip";
+            }
+        }
 
         #endregion // Binary Metadata
 

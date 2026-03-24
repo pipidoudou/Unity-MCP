@@ -187,20 +187,26 @@ namespace com.IvanMurzak.Unity.MCP
                     foreach (var tool in allTools)
                     {
                         var isEnabled = enabledSet.Contains(tool.Name!);
-                        toolManager.SetToolEnabled(tool.Name!, isEnabled);
-                        _logger.LogDebug("{method}: Tool '{tool}' enabled: {isEnabled} (env override)",
-                            nameof(ApplyConfigToMcpPlugin), tool.Name, isEnabled);
+                        if (tool.Name != null)
+                        {
+                            toolManager.SetToolEnabled(tool.Name, isEnabled);
+                            _logger.LogDebug("{method}: Tool '{tool}' enabled: {isEnabled} (env override)",
+                                nameof(ApplyConfigToMcpPlugin), tool.Name, isEnabled);
+                        }
                     }
                 }
                 else
                 {
                     foreach (var tool in toolManager.GetAllTools())
                     {
-                        var toolFeature = unityConnectionConfig.Tools.FirstOrDefault(t => t.Name == tool.Name!);
+                        var toolFeature = unityConnectionConfig.Tools.FirstOrDefault(t => t.Name == tool.Name);
                         var isEnabled = toolFeature?.Enabled ?? tool.Enabled;
-                        toolManager.SetToolEnabled(tool.Name!, isEnabled);
-                        _logger.LogDebug("{method}: Tool '{tool}' enabled: {isEnabled}",
-                            nameof(ApplyConfigToMcpPlugin), tool.Name, isEnabled);
+                        if (tool.Name != null)
+                        {
+                            toolManager.SetToolEnabled(tool.Name, isEnabled);
+                            _logger.LogDebug("{method}: Tool '{tool}' enabled: {isEnabled}",
+                                nameof(ApplyConfigToMcpPlugin), tool.Name, isEnabled);
+                        }
                     }
                 }
             }
@@ -213,9 +219,12 @@ namespace com.IvanMurzak.Unity.MCP
                 {
                     var promptFeature = unityConnectionConfig.Prompts.FirstOrDefault(p => p.Name == prompt.Name);
                     var isEnabled = promptFeature?.Enabled ?? prompt.Enabled;
-                    promptManager.SetPromptEnabled(prompt.Name, isEnabled);
-                    _logger.LogDebug("{method}: Prompt '{prompt}' enabled: {isEnabled}",
-                        nameof(ApplyConfigToMcpPlugin), prompt.Name, isEnabled);
+                    if (prompt.Name != null)
+                    {
+                        promptManager.SetPromptEnabled(prompt.Name, isEnabled);
+                        _logger.LogDebug("{method}: Prompt '{prompt}' enabled: {isEnabled}",
+                            nameof(ApplyConfigToMcpPlugin), prompt.Name, isEnabled);
+                    }
                 }
             }
 
@@ -227,9 +236,12 @@ namespace com.IvanMurzak.Unity.MCP
                 {
                     var resourceFeature = unityConnectionConfig.Resources.FirstOrDefault(r => r.Name == resource.Name);
                     var isEnabled = resourceFeature?.Enabled ?? resource.Enabled;
-                    resourceManager.SetResourceEnabled(resource.Name, isEnabled);
-                    _logger.LogDebug("{method}: Resource '{resource}' enabled: {isEnabled}",
-                        nameof(ApplyConfigToMcpPlugin), resource.Name, isEnabled);
+                    if (resource.Name != null)
+                    {
+                        resourceManager.SetResourceEnabled(resource.Name, isEnabled);
+                        _logger.LogDebug("{method}: Resource '{resource}' enabled: {isEnabled}",
+                            nameof(ApplyConfigToMcpPlugin), resource.Name, isEnabled);
+                    }
                 }
             }
 
