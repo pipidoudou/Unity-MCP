@@ -110,11 +110,37 @@ namespace com.IvanMurzak.Unity.MCP.Editor.UI
             }
         }
 
-        private static void UnityBuildAndConnect()
+        private static async void UnityBuildAndConnect()
         {
             UnityMcpPluginEditor.Instance.BuildMcpPluginIfNeeded();
             UnityMcpPluginEditor.Instance.AddUnityLogCollectorIfNeeded(() => new BufferedFileLogStorage());
-            UnityMcpPluginEditor.ConnectIfNeeded();
+            
+            // If the server is in 'Starting' state, we should wait for it to be 'Running' before connecting
+            // This prevents "Connection refused" errors when the MCP plugin tries to connect to the server
+            // before the server binary has finished initializing and binding to the port.
+            if (McpServerManager.IsStarting)
+            {
+                var cts = new System.Threading.CancellationTokenSource(10000); // 10s timeout
+                try
+                {
+                    while (McpServerManager.IsStarting && !cts.IsCancellationRequested)
+                    {
+                        await System.Threading.Tasks.Task.Delay(100, cts.Token);
+                    }
+                }
+                catch (System.Threading.Tasks.TaskCanceledException)
+                {
+                    Debug.LogWarning("[MCP] Timeout waiting for server to start before connecting.");
+                }
+            }
+
+            // Small delay to ensure the OS has fully bound the port after process starts
+            if (McpServerManager.IsRunning)
+            {
+                await System.Threading.Tasks.Task.Delay(200);
+            }
+
+            _ = UnityMcpPluginEditor.ConnectIfNeeded();
         }
 
         /// <summary>

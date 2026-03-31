@@ -102,7 +102,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor
                 }
             }
         }
-        static void OnAfterAssemblyReload()
+        static async void OnAfterAssemblyReload()
         {
             var isCi = EnvironmentUtils.IsCi();
             var keepConnected = UnityMcpPluginEditor.KeepConnected;
@@ -115,7 +115,23 @@ namespace com.IvanMurzak.Unity.MCP.Editor
             UnityMcpPluginEditor.Instance.AddUnityLogCollectorIfNeeded(() => new BufferedFileLogStorage());
 
             if (connectionAllowed)
-                UnityMcpPluginEditor.ConnectIfNeeded();
+            {
+                if (McpServerManager.IsStarting)
+                {
+                    var cts = new System.Threading.CancellationTokenSource(10000);
+                    try
+                    {
+                        while (McpServerManager.IsStarting && !cts.IsCancellationRequested)
+                            await System.Threading.Tasks.Task.Delay(100, cts.Token);
+                    }
+                    catch (System.Threading.Tasks.TaskCanceledException) {}
+                }
+                
+                if (McpServerManager.IsRunning)
+                    await System.Threading.Tasks.Task.Delay(200);
+
+                _ = UnityMcpPluginEditor.ConnectIfNeeded();
+            }
         }
 
         static void OnPlayModeStateChanged(PlayModeStateChange state)
@@ -157,13 +173,28 @@ namespace com.IvanMurzak.Unity.MCP.Editor
                     _logger.LogTrace("Scheduling reconnection after Play mode exit");
 
                     // Small delay to ensure Unity is fully settled in Edit mode
-                    EditorApplication.delayCall += () =>
+                    EditorApplication.delayCall += async () =>
                     {
                         _logger.LogTrace("Initiating delayed reconnection after Play mode exit");
 
                         UnityMcpPluginEditor.Instance.BuildMcpPluginIfNeeded();
                         UnityMcpPluginEditor.Instance.AddUnityLogCollectorIfNeeded(() => new BufferedFileLogStorage());
-                        UnityMcpPluginEditor.ConnectIfNeeded();
+                        
+                        if (McpServerManager.IsStarting)
+                        {
+                            var cts = new System.Threading.CancellationTokenSource(10000);
+                            try
+                            {
+                                while (McpServerManager.IsStarting && !cts.IsCancellationRequested)
+                                    await System.Threading.Tasks.Task.Delay(100, cts.Token);
+                            }
+                            catch (System.Threading.Tasks.TaskCanceledException) {}
+                        }
+                        
+                        if (McpServerManager.IsRunning)
+                            await System.Threading.Tasks.Task.Delay(200);
+
+                        _ = UnityMcpPluginEditor.ConnectIfNeeded();
                     };
 
                     // No delay, immediate reconnection for the case if Unity Editor in background
@@ -172,7 +203,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor
 
                     UnityMcpPluginEditor.Instance.BuildMcpPluginIfNeeded();
                     UnityMcpPluginEditor.Instance.AddUnityLogCollectorIfNeeded(() => new BufferedFileLogStorage());
-                    UnityMcpPluginEditor.ConnectIfNeeded();
+                    _ = UnityMcpPluginEditor.ConnectIfNeeded();
                     break;
 
                 case PlayModeStateChange.ExitingEditMode:
