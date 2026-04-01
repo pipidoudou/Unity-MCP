@@ -83,6 +83,13 @@ namespace com.IvanMurzak.Unity.MCP.Utils
             if (formatter == null) throw new ArgumentNullException(nameof(formatter));
             if (state == null) throw new ArgumentNullException(nameof(state));
 
+            var formattedMessage = formatter(state, exception);
+            
+            // Ignore benign warnings triggered when the plugin attempts to notify about updated tools
+            // before the SignalR connection to the MCP server is fully established.
+            if (logLevel == LogLevelMicrosoft.Warning && formattedMessage.Contains("Connection not available and auto-reconnect disabled for endpoint"))
+                return;
+
             // Map LogLevel to short names
 #if UNITY_EDITOR
             string logLevelShort = logLevel switch
@@ -95,7 +102,7 @@ namespace com.IvanMurzak.Unity.MCP.Utils
                 LogLevelMicrosoft.Trace => "<color=#aaaaaa>trce:</color>",
                 _ => "<color=#ffffff>none</color>"
             };
-            var message = $"{logLevelShort} [{DateTime.Now:HH:mm:ss:ffff}] <color=#B4FF32>[AI]</color> <color={_categoryColor}><b>{_categoryName}</b></color> {formatter(state, exception)}";
+            var message = $"{logLevelShort} [{DateTime.Now:HH:mm:ss:ffff}] <color=#B4FF32>[AI]</color> <color={_categoryColor}><b>{_categoryName}</b></color> {formattedMessage}";
 #else
             string logLevelShort = logLevel switch
             {
@@ -107,7 +114,7 @@ namespace com.IvanMurzak.Unity.MCP.Utils
                 LogLevelMicrosoft.Trace => "trce:",
                 _ => "none"
             };
-            var message = $"{logLevelShort} [{DateTime.Now:HH:mm:ss:ffff}] [AI] {_categoryName} {formatter(state, exception)}";
+            var message = $"{logLevelShort} [{DateTime.Now:HH:mm:ss:ffff}] [AI] {_categoryName} {formattedMessage}";
 #endif
 
             switch (logLevel)
