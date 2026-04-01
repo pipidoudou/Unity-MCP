@@ -185,7 +185,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor
                 if (version.Contains("dev") || version.Contains("alpha") || version.Contains("beta"))
                     version = "0.56.0"; // Fallback to stable version for binary download
                     
-                return $"https://github.com/IvanMurzak/Unity-MCP/releases/download/{version}/{ExecutableName.ToLowerInvariant()}-{PlatformName}.zip";
+                return $"https://github.com/pipidoudou/Unity-MCP/releases/download/{version}/{ExecutableName.ToLowerInvariant()}-{PlatformName}.zip";
             }
         }
 
