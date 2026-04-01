@@ -13,7 +13,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -73,20 +73,30 @@ namespace com.IvanMurzak.Unity.MCP.Editor
             // Check if server process is still running (e.g., after domain reload)
             EditorApplication.update += CheckExistingProcess;
 
-            DownloadServerBinaryIfNeeded()
-                .ContinueWith(task =>
+            // Use fire-and-forget async method instead of ContinueWith to avoid thread context issues
+            _ = InitializeServerAsync();
+        }
+
+        private static async Task InitializeServerAsync()
+        {
+            try
+            {
+                var success = await DownloadServerBinaryIfNeeded();
+                
+                if (!success || EnvironmentUtils.IsCi())
+                    return;
+
+                // Ensure we are on the main thread when modifying EditorApplication
+                com.IvanMurzak.Unity.MCP.Runtime.Utils.MainThread.Instance.Run(() => 
                 {
-                    if (task.IsFaulted || !task.Result)
-                        return; // Failed to download binaries, skip auto-start
-
-                    if (!task.Result)
-                        return; // No binaries available (either in CI or failed to download), skip auto-start
-
-                    if (EnvironmentUtils.IsCi())
-                        return; // Skip auto-start in CI environment
-
                     EditorApplication.update += StartServerIfNeeded;
                 });
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogError($"[MCP] Failed to initialize server: {ex.Message}");
+                UnityEngine.Debug.LogException(ex);
+            }
         }
 
         #region Binary Metadata
@@ -317,9 +327,14 @@ namespace com.IvanMurzak.Unity.MCP.Editor
                 UnityEngine.Debug.Log($"Temporary archive file path: <color=yellow>{archiveFilePath}</color>");
 
                 // Download the zip file from the GitHub release notes
-                using (var client = new WebClient())
+                using (var client = new HttpClient())
                 {
-                    await client.DownloadFileTaskAsync(ExecutableZipUrl, archiveFilePath);
+                    var response = await client.GetAsync(ExecutableZipUrl);
+                    response.EnsureSuccessStatusCode();
+                    using (var fs = new FileStream(archiveFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        await response.Content.CopyToAsync(fs);
+                    }
                 }
 
                 // Unpack zip archive
