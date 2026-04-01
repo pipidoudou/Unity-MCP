@@ -87,7 +87,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor
                     return;
 
                 // Ensure we are on the main thread when modifying EditorApplication
-                com.IvanMurzak.Unity.MCP.Runtime.Utils.MainThread.Instance.Run(() => 
+                com.IvanMurzak.ReflectorNet.Utils.MainThread.Instance.Run(() => 
                 {
                     EditorApplication.update += StartServerIfNeeded;
                 });
