@@ -41,6 +41,14 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool worldPositionStays = true
         )
         {
+            if (gameObjectRefs == null || gameObjectRefs.Count == 0)
+                throw new System.ArgumentException($"Required parameter 'gameObjectRefs' is missing or empty.", nameof(gameObjectRefs));
+            if (parentGameObjectRef == null)
+                throw new System.ArgumentException($"Required parameter 'parentGameObjectRef' is missing.", nameof(parentGameObjectRef));
+
+            if (parentGameObjectRef == null)
+                throw new System.ArgumentException($"Required parameter 'parentGameObjectRef' is missing.", nameof(parentGameObjectRef));
+
             return MainThread.Instance.Run(() =>
             {
                 var stringBuilder = new StringBuilder();

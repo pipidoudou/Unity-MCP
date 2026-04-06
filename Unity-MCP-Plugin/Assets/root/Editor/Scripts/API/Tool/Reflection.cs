@@ -150,6 +150,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         {
             public static string MoreThanOneMethodFound(List<MethodInfo> methods)
             {
+            if (methods == null || methods.Count == 0)
+                throw new System.ArgumentException($"Required parameter 'methods' is missing or empty.", nameof(methods));
+
                 var reflector = UnityMcpPluginEditor.Instance.Reflector ?? throw new Exception("Reflector is not available.");
                 var methodsString = methods
                     .Select(method => new MethodData(reflector, method, justRef: false))

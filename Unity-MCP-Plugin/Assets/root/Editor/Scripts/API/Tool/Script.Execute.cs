@@ -50,6 +50,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             SerializedMemberList? parameters = null
         )
         {
+            if (string.IsNullOrWhiteSpace(csharpCode))
+                throw new System.ArgumentException($"Required parameter 'csharpCode' is missing or empty.", nameof(csharpCode));
+
             if (string.IsNullOrEmpty(csharpCode))
                 throw new Exception($"'{nameof(csharpCode)}' is null or empty. Please provide valid C# code to execute.");
 

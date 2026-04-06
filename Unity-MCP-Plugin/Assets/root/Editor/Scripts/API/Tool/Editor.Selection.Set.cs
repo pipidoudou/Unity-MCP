@@ -33,6 +33,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             "Use '" + EditorSelectionGetToolId + "' tool to get the current selection first.")]
         public SelectionData Set(ObjectRef[] select)
         {
+            if (select == null)
+                throw new System.ArgumentException($"Required parameter 'select' is missing.", nameof(select));
+
             return MainThread.Instance.Run(() =>
             {
                 var objects = select.Select(o => o.FindObject()).ToArray();

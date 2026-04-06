@@ -44,6 +44,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             SerializedMemberList gameObjectDiffs
         )
         {
+            if (gameObjectRefs == null || gameObjectRefs.Count == 0)
+                throw new System.ArgumentException($"Required parameter 'gameObjectRefs' is missing or empty.", nameof(gameObjectRefs));
+            if (gameObjectDiffs == null || gameObjectDiffs.Count == 0)
+                throw new System.ArgumentException($"Required parameter 'gameObjectDiffs' is missing or empty.", nameof(gameObjectDiffs));
+
             if (gameObjectRefs.Count == 0)
                 throw new ArgumentException("No GameObject references provided. Please provide at least one GameObject reference.", nameof(gameObjectRefs));
 

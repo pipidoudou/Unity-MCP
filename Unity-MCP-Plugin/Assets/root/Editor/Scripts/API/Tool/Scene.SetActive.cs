@@ -32,6 +32,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             "Use '" + SceneListOpenedToolId + "' tool to get the list of all opened scenes.")]
         public SceneDataShallow[] SetActive(AssetObjectRef sceneRef)
         {
+            if (sceneRef == null)
+                throw new System.ArgumentException($"Required parameter 'sceneRef' is missing.", nameof(sceneRef));
+
             return MainThread.Instance.Run(() =>
             {
                 var sceneAsset = sceneRef.FindAssetObject<UnityEditor.SceneAsset>()

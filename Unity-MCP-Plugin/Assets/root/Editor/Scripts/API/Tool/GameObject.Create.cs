@@ -49,6 +49,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             PrimitiveType? primitiveType = null
         )
         {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new System.ArgumentException($"Required parameter 'name' is missing or empty.", nameof(name));
+
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Name cannot be null or empty.", nameof(name));
 

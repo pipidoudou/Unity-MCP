@@ -61,6 +61,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool writeIndented = false
         )
         {
+            if (string.IsNullOrWhiteSpace(typeName))
+                throw new System.ArgumentException($"Required parameter 'typeName' is missing or empty.", nameof(typeName));
+
             var type = TypeUtils.GetType(typeName);
             if (type == null)
                 throw new ArgumentException($"Type '{typeName}' not found in any loaded assembly. " +

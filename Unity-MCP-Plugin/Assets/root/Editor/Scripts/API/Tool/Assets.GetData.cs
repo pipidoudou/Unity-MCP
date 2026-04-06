@@ -38,6 +38,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         public SerializedMember GetData(AssetObjectRef assetRef)
         {
             if (assetRef == null)
+                throw new System.ArgumentException($"Required parameter 'assetRef' is missing.", nameof(assetRef));
+
+            if (assetRef == null)
                 throw new ArgumentNullException(nameof(assetRef));
 
             if (!assetRef.IsValid(out var error))

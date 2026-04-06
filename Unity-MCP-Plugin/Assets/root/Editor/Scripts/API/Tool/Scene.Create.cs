@@ -35,6 +35,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             UnityEditor.SceneManagement.NewSceneMode? newSceneMode = UnityEditor.SceneManagement.NewSceneMode.Single
         )
         {
+            if (string.IsNullOrWhiteSpace(path))
+                throw new System.ArgumentException($"Required parameter 'path' is missing or empty.", nameof(path));
+
             return MainThread.Instance.Run(() =>
             {
                 if (string.IsNullOrEmpty(path))

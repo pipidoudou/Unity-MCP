@@ -77,6 +77,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         )
         {
             if (string.IsNullOrWhiteSpace(query))
+                throw new System.ArgumentException($"Required parameter 'query' is missing or empty.", nameof(query));
+
+            if (string.IsNullOrWhiteSpace(query))
                 throw new ArgumentException("Search query cannot be empty. Please provide a package name or search term.");
 
             if (maxResults <= 0)

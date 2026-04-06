@@ -40,6 +40,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         )
         {
             if (objectRef == null)
+                throw new System.ArgumentException($"Required parameter 'objectRef' is missing.", nameof(objectRef));
+
+            if (objectRef == null)
                 throw new ArgumentNullException(nameof(objectRef));
 
             if (!objectRef.IsValid(out var error))

@@ -27,6 +27,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         {
             public static string NotFoundComponent(int componentInstanceID, IEnumerable<UnityEngine.Component> allComponents)
             {
+            if (allComponents == null)
+                throw new System.ArgumentException($"Required parameter 'allComponents' is missing.", nameof(allComponents));
+
                 var reflector = UnityMcpPluginEditor.Instance.Reflector ?? throw new Exception("Reflector is not available.");
                 var availableComponentsPreview = allComponents
                     .Select((c, i) => reflector.Serialize(

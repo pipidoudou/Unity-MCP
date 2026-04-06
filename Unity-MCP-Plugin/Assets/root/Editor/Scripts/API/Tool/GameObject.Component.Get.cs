@@ -50,6 +50,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool deepSerialization = false
         )
         {
+            if (gameObjectRef == null)
+                throw new System.ArgumentException($"Required parameter 'gameObjectRef' is missing.", nameof(gameObjectRef));
+            if (componentRef == null)
+                throw new System.ArgumentException($"Required parameter 'componentRef' is missing.", nameof(componentRef));
+
             if (!gameObjectRef.IsValid(out var gameObjectValidationError))
                 throw new ArgumentException(gameObjectValidationError, nameof(gameObjectRef));
 

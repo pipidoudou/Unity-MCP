@@ -39,6 +39,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             string name
         )
         {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new System.ArgumentException($"Required parameter 'name' is missing or empty.", nameof(name));
+
             return MainThread.Instance.Run(async () =>
             {
                 var logger = UnityLoggerFactory.LoggerFactory.CreateLogger<Tool_Scene>();

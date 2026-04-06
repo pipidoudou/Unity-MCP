@@ -47,6 +47,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool isLocalSpace = false
         )
         {
+            if (string.IsNullOrWhiteSpace(prefabAssetPath))
+                throw new System.ArgumentException($"Required parameter 'prefabAssetPath' is missing or empty.", nameof(prefabAssetPath));
+            if (string.IsNullOrWhiteSpace(gameObjectPath))
+                throw new System.ArgumentException($"Required parameter 'gameObjectPath' is missing or empty.", nameof(gameObjectPath));
+
             return MainThread.Instance.Run(() =>
             {
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabAssetPath);

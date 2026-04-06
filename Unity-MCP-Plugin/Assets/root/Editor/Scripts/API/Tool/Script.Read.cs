@@ -40,6 +40,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             int lineTo = -1
         )
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new System.ArgumentException($"Required parameter 'filePath' is missing or empty.", nameof(filePath));
+
             if (string.IsNullOrEmpty(filePath))
                 throw new ArgumentException(Error.ScriptPathIsEmpty(), nameof(filePath));
 

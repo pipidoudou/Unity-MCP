@@ -51,6 +51,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             CreateFolderInput[] inputs
         )
         {
+            if (inputs == null)
+                throw new System.ArgumentException($"Required parameter 'inputs' is missing.", nameof(inputs));
+
             return MainThread.Instance.Run(() =>
             {
                 if (inputs.Length == 0)

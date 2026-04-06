@@ -42,6 +42,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             string? requestId = null
         )
         {
+            if (string.IsNullOrWhiteSpace(files))
+                throw new System.ArgumentException($"Required parameter 'files' is missing or empty.", nameof(files));
+
             if (requestId == null || string.IsNullOrWhiteSpace(requestId))
                 return ResponseCallTool.Error("Original request with valid RequestID must be provided.");
 

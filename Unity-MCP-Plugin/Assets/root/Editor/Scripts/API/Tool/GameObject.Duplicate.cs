@@ -34,6 +34,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             "Use '" + GameObjectFindToolId + "' tool to find the target GameObjects first.")]
         public List<GameObjectRef> Duplicate(GameObjectRefList gameObjectRefs)
         {
+            if (gameObjectRefs == null || gameObjectRefs.Count == 0)
+                throw new System.ArgumentException($"Required parameter 'gameObjectRefs' is missing or empty.", nameof(gameObjectRefs));
+
             return MainThread.Instance.Run(() =>
             {
                 var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();

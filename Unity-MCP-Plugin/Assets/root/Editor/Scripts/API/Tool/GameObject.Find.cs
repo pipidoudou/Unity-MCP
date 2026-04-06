@@ -50,6 +50,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             int hierarchyDepth = 0
         )
         {
+            if (gameObjectRef == null)
+                throw new System.ArgumentException($"Required parameter 'gameObjectRef' is missing.", nameof(gameObjectRef));
+
             return MainThread.Instance.Run(() =>
             {
                 var go = gameObjectRef.FindGameObject(out var error);

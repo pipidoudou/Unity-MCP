@@ -36,6 +36,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         public DestroyGameObjectResult Destroy(GameObjectRef gameObjectRef)
         {
             if (gameObjectRef == null)
+                throw new System.ArgumentException($"Required parameter 'gameObjectRef' is missing.", nameof(gameObjectRef));
+
+            if (gameObjectRef == null)
                 throw new ArgumentNullException(nameof(gameObjectRef), "No GameObject reference provided.");
 
             if (!gameObjectRef.IsValid(out var gameObjectValidationError))

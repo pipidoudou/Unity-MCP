@@ -85,6 +85,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool executeInMainThread = true
         )
         {
+            if (filter == null)
+                throw new System.ArgumentException($"Required parameter 'filter' is missing.", nameof(filter));
+
             // Enhance filter with input parameters if no input parameters specified in the filter.
             if ((filter.InputParameters?.Count ?? 0) == 0 && (inputParameters?.Count ?? 0) > 0)
                 filter.EnhanceInputParameters(inputParameters);

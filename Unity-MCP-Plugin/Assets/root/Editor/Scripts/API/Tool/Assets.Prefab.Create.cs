@@ -40,6 +40,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool replaceGameObjectWithPrefab = true
         )
         {
+            if (string.IsNullOrWhiteSpace(prefabAssetPath))
+                throw new System.ArgumentException($"Required parameter 'prefabAssetPath' is missing or empty.", nameof(prefabAssetPath));
+            if (gameObjectRef == null)
+                throw new System.ArgumentException($"Required parameter 'gameObjectRef' is missing.", nameof(gameObjectRef));
+
             return MainThread.Instance.Run(() =>
             {
                 if (string.IsNullOrEmpty(prefabAssetPath))

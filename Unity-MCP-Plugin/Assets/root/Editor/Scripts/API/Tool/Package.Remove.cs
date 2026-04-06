@@ -43,6 +43,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             string? requestId = null
         )
         {
+            if (string.IsNullOrWhiteSpace(packageId))
+                throw new System.ArgumentException($"Required parameter 'packageId' is missing or empty.", nameof(packageId));
+
             if (requestId == null || string.IsNullOrWhiteSpace(requestId))
                 return ResponseCallTool.Error("[Error] Original request with valid RequestID must be provided.");
 

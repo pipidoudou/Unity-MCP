@@ -44,6 +44,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         )
         {
             if (assetRef == null)
+                throw new System.ArgumentException($"Required parameter 'assetRef' is missing.", nameof(assetRef));
+
+            if (assetRef == null)
                 throw new ArgumentNullException(nameof(assetRef));
 
             if (!assetRef.IsValid(out var assetValidationError))

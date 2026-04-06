@@ -68,6 +68,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             int parametersMatchLevel = 0
         )
         {
+            if (filter == null)
+                throw new System.ArgumentException($"Required parameter 'filter' is missing.", nameof(filter));
+
             return MainThread.Instance.Run(() =>
             {
                 var methodEnumerable = FindMethods(

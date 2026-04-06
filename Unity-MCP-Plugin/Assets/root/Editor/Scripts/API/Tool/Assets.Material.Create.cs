@@ -39,6 +39,11 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             string shaderName
         )
         {
+            if (string.IsNullOrWhiteSpace(assetPath))
+                throw new System.ArgumentException($"Required parameter 'assetPath' is missing or empty.", nameof(assetPath));
+            if (string.IsNullOrWhiteSpace(shaderName))
+                throw new System.ArgumentException($"Required parameter 'shaderName' is missing or empty.", nameof(shaderName));
+
             return MainThread.Instance.Run(() =>
             {
                 if (string.IsNullOrEmpty(assetPath))

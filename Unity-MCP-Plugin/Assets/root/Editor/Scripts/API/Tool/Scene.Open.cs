@@ -38,6 +38,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             UnityEditor.SceneManagement.OpenSceneMode loadSceneMode = UnityEditor.SceneManagement.OpenSceneMode.Single
         )
         {
+            if (sceneRef == null)
+                throw new System.ArgumentException($"Required parameter 'sceneRef' is missing.", nameof(sceneRef));
+
             return MainThread.Instance.Run(() =>
             {
                 var sceneAsset = sceneRef.FindAssetObject<UnityEditor.SceneAsset>()
