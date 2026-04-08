@@ -39,7 +39,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             string[] paths
         )
         {
-            if (string.IsNullOrWhiteSpace(paths))
+            if (paths == null || paths.Length == 0)
                 throw new System.ArgumentException($"Required parameter 'paths' is missing or empty.", nameof(paths));
 
             return MainThread.Instance.Run(() =>

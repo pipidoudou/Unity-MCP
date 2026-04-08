@@ -40,9 +40,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             string[] destinationPaths
         )
         {
-            if (string.IsNullOrWhiteSpace(sourcePaths))
+            if (sourcePaths == null || sourcePaths.Length == 0)
                 throw new System.ArgumentException($"Required parameter 'sourcePaths' is missing or empty.", nameof(sourcePaths));
-            if (string.IsNullOrWhiteSpace(destinationPaths))
+            if (destinationPaths == null || destinationPaths.Length == 0)
                 throw new System.ArgumentException($"Required parameter 'destinationPaths' is missing or empty.", nameof(destinationPaths));
 
             return MainThread.Instance.Run(() =>

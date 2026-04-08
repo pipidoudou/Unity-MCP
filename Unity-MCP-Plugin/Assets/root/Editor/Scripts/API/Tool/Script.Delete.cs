@@ -42,7 +42,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             string? requestId = null
         )
         {
-            if (string.IsNullOrWhiteSpace(files))
+            if (files == null || files.Length == 0)
                 throw new System.ArgumentException($"Required parameter 'files' is missing or empty.", nameof(files));
 
             if (requestId == null || string.IsNullOrWhiteSpace(requestId))

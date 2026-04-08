@@ -38,7 +38,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             GameObjectRef gameObjectRef
         )
         {
-            if (string.IsNullOrWhiteSpace(componentNames))
+            if (componentNames == null || componentNames.Length == 0)
                 throw new System.ArgumentException($"Required parameter 'componentNames' is missing or empty.", nameof(componentNames));
             if (gameObjectRef == null)
                 throw new System.ArgumentException($"Required parameter 'gameObjectRef' is missing.", nameof(gameObjectRef));
