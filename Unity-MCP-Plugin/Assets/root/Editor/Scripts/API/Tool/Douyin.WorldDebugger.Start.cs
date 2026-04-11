@@ -12,13 +12,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
 using com.IvanMurzak.Unity.MCP;
-using com.IvanMurzak.Unity.MCP.Runtime.Utils;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
@@ -48,14 +52,20 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool multiClientDebug = false,
             [Description("Enable data storage (启用数据存储).")]
             bool enableDataStorage = false,
+            [Description("Selected world data (选择世界) used when data storage enabled.")]
+            string? worldData = null,
             [Description("Enable performance analysis panel (启用性能分析面板).")]
             bool enablePerformancePanel = false,
             [Description("Pack resources (是否打包资源).")]
             bool packResources = true,
-            [Description("Attempt to auto-start debugging after launching the app.")]
-            bool autoStart = true,
-            [Description("Additional raw command-line arguments passed to the debugger executable.")]
-            string[]? additionalArguments = null
+            [Description("Open server side in DS mode (启动服务器端).")]
+            bool openDsServer = false,
+            [Description("Windowless mode in DS mode (无窗口启动).")]
+            bool windowless = false,
+            [Description("Menu path to open Douyin simulator settings window.")]
+            string menuPath = "抖音虚拟创作SDK/抖音虚拟资产调试器",
+            [Description("Timeout to wait for the settings window to be created (ms).")]
+            int timeoutMs = 5000
         )
         {
             if (string.IsNullOrWhiteSpace(debuggerExecutablePath))
@@ -68,40 +78,109 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             if (!File.Exists(resolvedExecutablePath))
                 throw new FileNotFoundException($"Debugger executable not found at path '{resolvedExecutablePath}'.", resolvedExecutablePath);
 
-            var args = BuildArguments(
-                target: target,
-                roomId: roomId,
-                multiClientDebug: multiClientDebug,
-                enableDataStorage: enableDataStorage,
-                enablePerformancePanel: enablePerformancePanel,
-                packResources: packResources,
-                autoStart: autoStart,
-                additionalArguments: additionalArguments);
+            if (timeoutMs <= 0)
+                throw new ArgumentOutOfRangeException(nameof(timeoutMs), "Timeout must be greater than zero.");
 
-            return MainThread.Instance.Run(() =>
+            var tcs = new TaskCompletionSource<StartDouyinWorldDebuggerResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var cts = new CancellationTokenSource(timeoutMs);
+
+            MainThread.Instance.Run(() =>
             {
-                var psi = new ProcessStartInfo
+                var executed = EditorApplication.ExecuteMenuItem(menuPath);
+                if (!executed)
                 {
-                    FileName = resolvedExecutablePath,
-                    Arguments = string.Join(" ", args.Select(QuoteArgIfNeeded)),
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false
+                    tcs.TrySetException(new Exception($"Failed to execute menu item '{menuPath}'."));
+                    return;
+                }
+
+                var windowType = GetSimulatorSettingsWindowType();
+                if (windowType == null)
+                {
+                    tcs.TrySetException(new Exception("SimulatorSettingsWindow type not found in loaded assemblies."));
+                    return;
+                }
+
+                var startTime = EditorApplication.timeSinceStartup;
+                EditorApplication.CallbackFunction? tick = null;
+                tick = () =>
+                {
+                    if (cts.IsCancellationRequested)
+                    {
+                        EditorApplication.update -= tick;
+                        tcs.TrySetException(new TimeoutException("Timed out waiting for SimulatorSettingsWindow instance."));
+                        return;
+                    }
+
+                    var window = Resources.FindObjectsOfTypeAll(windowType).FirstOrDefault() as EditorWindow;
+                    if (window == null)
+                        return;
+
+                    EditorApplication.update -= tick;
+
+                    try
+                    {
+                        var root = window.rootVisualElement;
+
+                        var currentSimulatorPathField = windowType.GetField("currentSimulatorPath", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        currentSimulatorPathField?.SetValue(window, resolvedExecutablePath);
+
+                        TrySetValue(root, "m_path", resolvedExecutablePath);
+
+                        if (!string.IsNullOrWhiteSpace(target))
+                            TrySetValue(root, "m_SelectRes", target.Trim());
+
+                        if (roomId.HasValue)
+                        {
+                            TrySetValue(root, "m_roomID", roomId.Value.ToString());
+
+                            var roomField = windowType.GetField("RoomID", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                            if (roomField?.GetValue(window) is TextField roomTf)
+                                roomTf.value = roomId.Value.ToString();
+                        }
+
+                        TrySetToggle(root, "m_Multiplayer", multiClientDebug);
+                        TrySetToggle(root, "m_OpenDataStorge", enableDataStorage);
+                        TrySetToggle(root, "m_ProfilerDebug", enablePerformancePanel);
+                        TrySetToggle(root, "m_BuildPackage", packResources);
+                        TrySetToggle(root, "m_OpenDsServer", openDsServer);
+                        TrySetToggle(root, "m_Windowless", windowless);
+
+                        if (!string.IsNullOrWhiteSpace(worldData))
+                            TrySetValue(root, "m_SelectWorldData", worldData.Trim());
+
+                        var startDebugMethod = windowType.GetMethod("StartDebug", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        if (startDebugMethod == null)
+                            throw new MissingMethodException(windowType.FullName, "StartDebug");
+
+                        startDebugMethod.Invoke(window, null);
+
+                        tcs.TrySetResult(new StartDouyinWorldDebuggerResponse
+                        {
+                            Started = true,
+                            Pid = 0,
+                            ExecutablePath = resolvedExecutablePath,
+                            Arguments = Array.Empty<string>(),
+                            MenuPath = menuPath,
+                            WindowTypeName = windowType.FullName ?? windowType.Name
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.TrySetException(ex);
+                    }
                 };
 
-                var process = Process.Start(psi);
-                if (process == null)
-                    throw new Exception("Failed to start Douyin World Debugger process.");
-
-                return new StartDouyinWorldDebuggerResponse
-                {
-                    Started = true,
-                    Pid = process.Id,
-                    ExecutablePath = resolvedExecutablePath,
-                    Arguments = args.ToArray()
-                };
+                EditorApplication.update += tick;
             });
+
+            try
+            {
+                return tcs.Task.GetAwaiter().GetResult();
+            }
+            finally
+            {
+                cts.Dispose();
+            }
         }
 
         static string ResolveExecutablePath(string inputPath)
@@ -115,58 +194,37 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             return trimmed;
         }
 
-        static IEnumerable<string> BuildArguments(
-            string? target,
-            int? roomId,
-            bool multiClientDebug,
-            bool enableDataStorage,
-            bool enablePerformancePanel,
-            bool packResources,
-            bool autoStart,
-            string[]? additionalArguments)
+        static Type? GetSimulatorSettingsWindowType()
         {
-            var args = new List<string>();
+            var direct = Type.GetType("SimulatorSettingsWindow, com.douyin.world.editor");
+            if (direct != null && typeof(EditorWindow).IsAssignableFrom(direct))
+                return direct;
 
-            if (!string.IsNullOrWhiteSpace(target))
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                args.Add("--target");
-                args.Add(target.Trim());
+                Type[] types;
+                try { types = asm.GetTypes(); }
+                catch { continue; }
+                var t = types.FirstOrDefault(x => x.Name == "SimulatorSettingsWindow" && typeof(EditorWindow).IsAssignableFrom(x));
+                if (t != null)
+                    return t;
             }
 
-            if (roomId.HasValue)
-            {
-                args.Add("--roomId");
-                args.Add(roomId.Value.ToString());
-            }
-
-            if (multiClientDebug)
-                args.Add("--multiClientDebug");
-
-            if (enableDataStorage)
-                args.Add("--enableDataStorage");
-
-            if (enablePerformancePanel)
-                args.Add("--enablePerformancePanel");
-
-            args.Add("--packResources");
-            args.Add(packResources ? "true" : "false");
-
-            if (autoStart)
-                args.Add("--start");
-
-            if (additionalArguments != null && additionalArguments.Length > 0)
-                args.AddRange(additionalArguments.Where(a => !string.IsNullOrWhiteSpace(a)).Select(a => a.Trim()));
-
-            return args;
+            return null;
         }
 
-        static string QuoteArgIfNeeded(string arg)
+        static void TrySetValue(VisualElement root, string name, string value)
         {
-            if (string.IsNullOrEmpty(arg))
-                return "\"\"";
-            if (arg.IndexOfAny(new[] { ' ', '\t', '\n', '\r', '"' }) == -1)
-                return arg;
-            return "\"" + arg.Replace("\"", "\\\"") + "\"";
+            var el = root.Q<TextField>(name);
+            if (el != null)
+                el.value = value;
+        }
+
+        static void TrySetToggle(VisualElement root, string name, bool value)
+        {
+            var el = root.Q<Toggle>(name);
+            if (el != null)
+                el.value = value;
         }
 
         public class StartDouyinWorldDebuggerResponse
@@ -182,6 +240,12 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
 
             [Description("Arguments passed to the debugger executable.")]
             public string[] Arguments { get; set; } = Array.Empty<string>();
+
+            [Description("Menu path used to open the settings window.")]
+            public string MenuPath { get; set; } = string.Empty;
+
+            [Description("Type name of the settings window used to start debugging.")]
+            public string WindowTypeName { get; set; } = string.Empty;
         }
     }
 }
