@@ -22,7 +22,7 @@ using com.IvanMurzak.Unity.MCP.Runtime.Utils;
 
 namespace com.IvanMurzak.Unity.MCP.Editor.API
 {
-    public static partial class Tool_Douyin
+    public partial class Tool_Douyin
     {
         public const string DouyinWorldDebuggerStartToolId = "douyin-world-debugger-start";
 
@@ -35,7 +35,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [Description("Starts Douyin World Debugger app with provided parameters. " +
             "You can provide the executable path per call, or configure a default path via config field 'douyinWorldDebuggerExecutablePath' " +
             "or environment variable 'UNITY_MCP_DOUYIN_WORLD_DEBUGGER_EXECUTABLE_PATH'.")]
-        public static StartDouyinWorldDebuggerResponse StartWorldDebugger
+        public StartDouyinWorldDebuggerResponse StartWorldDebugger
         (
             [Description("Debugger executable path. If null, uses configured default path from config or environment override.")]
             string? debuggerExecutablePath = null,
