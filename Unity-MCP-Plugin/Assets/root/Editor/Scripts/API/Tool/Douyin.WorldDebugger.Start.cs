@@ -15,7 +15,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using com.IvanMurzak.McpPlugin;
 using com.IvanMurzak.ReflectorNet.Utils;
@@ -40,7 +39,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
         [Description("Starts Douyin World Debugger app with provided parameters. " +
             "You can provide the executable path per call, or configure a default path via config field 'douyinWorldDebuggerExecutablePath' " +
             "or environment variable 'UNITY_MCP_DOUYIN_WORLD_DEBUGGER_EXECUTABLE_PATH'.")]
-        public StartDouyinWorldDebuggerResponse StartWorldDebugger
+        public async Task<StartDouyinWorldDebuggerResponse> StartWorldDebugger
         (
             [Description("Debugger executable path. If null, uses configured default path from config or environment override.")]
             string? debuggerExecutablePath = null,
@@ -81,23 +80,56 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             if (timeoutMs <= 0)
                 throw new ArgumentOutOfRangeException(nameof(timeoutMs), "Timeout must be greater than zero.");
 
+            return await StartViaSimulatorSettingsWindowAsync(
+                resolvedExecutablePath: resolvedExecutablePath,
+                target: target,
+                roomId: roomId,
+                multiClientDebug: multiClientDebug,
+                enableDataStorage: enableDataStorage,
+                worldData: worldData,
+                enablePerformancePanel: enablePerformancePanel,
+                packResources: packResources,
+                openDsServer: openDsServer,
+                windowless: windowless,
+                menuPath: menuPath,
+                timeoutMs: timeoutMs);
+        }
+
+        static async Task<StartDouyinWorldDebuggerResponse> StartViaSimulatorSettingsWindowAsync(
+            string resolvedExecutablePath,
+            string? target,
+            int? roomId,
+            bool multiClientDebug,
+            bool enableDataStorage,
+            string? worldData,
+            bool enablePerformancePanel,
+            bool packResources,
+            bool openDsServer,
+            bool windowless,
+            string menuPath,
+            int timeoutMs)
+        {
             var tcs = new TaskCompletionSource<StartDouyinWorldDebuggerResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var cts = new CancellationTokenSource(timeoutMs);
+            using var cts = new System.Threading.CancellationTokenSource(timeoutMs);
 
-            MainThread.Instance.Run(() =>
+            await MainThread.Instance.RunAsync(() =>
             {
-                var executed = EditorApplication.ExecuteMenuItem(menuPath);
-                if (!executed)
-                {
-                    tcs.TrySetException(new Exception($"Failed to execute menu item '{menuPath}'."));
-                    return;
-                }
-
                 var windowType = GetSimulatorSettingsWindowType();
                 if (windowType == null)
                 {
                     tcs.TrySetException(new Exception("SimulatorSettingsWindow type not found in loaded assemblies."));
                     return;
+                }
+
+                var window = Resources.FindObjectsOfTypeAll(windowType).FirstOrDefault() as EditorWindow;
+                if (window == null)
+                {
+                    var executed = EditorApplication.ExecuteMenuItem(menuPath);
+                    if (!executed)
+                    {
+                        tcs.TrySetException(new Exception($"Failed to execute menu item '{menuPath}'."));
+                        return;
+                    }
                 }
 
                 var startTime = EditorApplication.timeSinceStartup;
@@ -173,14 +205,7 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
                 EditorApplication.update += tick;
             });
 
-            try
-            {
-                return tcs.Task.GetAwaiter().GetResult();
-            }
-            finally
-            {
-                cts.Dispose();
-            }
+            return await tcs.Task;
         }
 
         static string ResolveExecutablePath(string inputPath)
