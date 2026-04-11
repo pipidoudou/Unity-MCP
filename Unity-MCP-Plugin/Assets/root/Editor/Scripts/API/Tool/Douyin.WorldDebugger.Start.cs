@@ -64,7 +64,9 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             [Description("Menu path to open Douyin simulator settings window.")]
             string menuPath = "抖音虚拟创作SDK/抖音虚拟资产调试器",
             [Description("Timeout to wait for the settings window to be created (ms).")]
-            int timeoutMs = 5000
+            int timeoutMs = 5000,
+            [Description("How many editor frames to wait after configuring the window before invoking StartDebug.")]
+            int startDelayFrames = 2
         )
         {
             if (string.IsNullOrWhiteSpace(debuggerExecutablePath))
@@ -92,7 +94,8 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
                 openDsServer: openDsServer,
                 windowless: windowless,
                 menuPath: menuPath,
-                timeoutMs: timeoutMs);
+                timeoutMs: timeoutMs,
+                startDelayFrames: startDelayFrames);
         }
 
         static async Task<StartDouyinWorldDebuggerResponse> StartViaSimulatorSettingsWindowAsync(
@@ -107,7 +110,8 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             bool openDsServer,
             bool windowless,
             string menuPath,
-            int timeoutMs)
+            int timeoutMs,
+            int startDelayFrames)
         {
             var tcs = new TaskCompletionSource<StartDouyinWorldDebuggerResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
             using var cts = new System.Threading.CancellationTokenSource(timeoutMs);
@@ -184,7 +188,16 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
                         if (startDebugMethod == null)
                             throw new MissingMethodException(windowType.FullName, "StartDebug");
 
-                        startDebugMethod.Invoke(window, null);
+                        try
+                        {
+                            window.Focus();
+                            window.Repaint();
+                        }
+                        catch
+                        {
+                        }
+
+                        ScheduleStartDebug(window, startDebugMethod, Math.Max(0, startDelayFrames));
 
                         tcs.TrySetResult(new StartDouyinWorldDebuggerResponse
                         {
@@ -250,6 +263,31 @@ namespace com.IvanMurzak.Unity.MCP.Editor.API
             var el = root.Q<Toggle>(name);
             if (el != null)
                 el.value = value;
+        }
+
+        static void ScheduleStartDebug(EditorWindow window, MethodInfo startDebugMethod, int delayFrames)
+        {
+            var framesLeft = delayFrames;
+            EditorApplication.CallbackFunction? tick = null;
+            tick = () =>
+            {
+                if (framesLeft > 0)
+                {
+                    framesLeft--;
+                    return;
+                }
+
+                EditorApplication.update -= tick;
+                try
+                {
+                    startDebugMethod.Invoke(window, null);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            };
+            EditorApplication.update += tick;
         }
 
         public class StartDouyinWorldDebuggerResponse
