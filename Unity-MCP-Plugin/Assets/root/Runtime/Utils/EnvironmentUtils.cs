@@ -33,6 +33,7 @@ namespace com.IvanMurzak.Unity.MCP.Runtime.Utils
         public const string EnvTools = "UNITY_MCP_TOOLS";
         public const string EnvStartServer = "UNITY_MCP_START_SERVER";
         public const string EnvTransport = "UNITY_MCP_TRANSPORT";
+        public const string EnvDouyinWorldDebuggerExecutablePath = "UNITY_MCP_DOUYIN_WORLD_DEBUGGER_EXECUTABLE_PATH";
 
         /// <summary>
         /// Checks if the current environment is a CI environment.
@@ -130,6 +131,15 @@ namespace com.IvanMurzak.Unity.MCP.Runtime.Utils
                 }
                 config.EnabledToolsOverride = trimmed;
                 _logger.LogInformation("[MCP] Env override: {Key}={Value}", EnvTools, tools.Trim());
+            }
+
+            var debuggerExecutablePath = args.GetValueOrDefault(EnvDouyinWorldDebuggerExecutablePath)
+                ?? Environment.GetEnvironmentVariable(EnvDouyinWorldDebuggerExecutablePath);
+            if (!string.IsNullOrWhiteSpace(debuggerExecutablePath))
+            {
+                config.DouyinWorldDebuggerExecutablePath = debuggerExecutablePath.Trim().Trim('"');
+                _logger.LogInformation("[MCP] Env override: {Key}={Value}",
+                    EnvDouyinWorldDebuggerExecutablePath, config.DouyinWorldDebuggerExecutablePath);
             }
         }
     }

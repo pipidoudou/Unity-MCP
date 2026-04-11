@@ -79,6 +79,7 @@ namespace com.IvanMurzak.Unity.MCP
             public AuthOption AuthOption { get; set; } = AuthOption.none;
             public ConnectionMode ConnectionMode { get; set; } = ConnectionMode.Custom;
             public string? CloudToken { get; set; }
+            public string? DouyinWorldDebuggerExecutablePath { get; set; }
             public List<McpFeature> Tools { get; set; } = new();
             public List<McpFeature> Prompts { get; set; } = new();
             public List<McpFeature> Resources { get; set; } = new();
@@ -110,6 +111,7 @@ namespace com.IvanMurzak.Unity.MCP
                 AuthOption = AuthOption.none;
                 ConnectionMode = ConnectionMode.Custom;
                 CloudToken = null;
+                DouyinWorldDebuggerExecutablePath = null;
                 LogLevel = LogLevel.Warning;
                 TimeoutMs = Consts.Hub.DefaultTimeoutMs;
                 Tools = DefaultTools;

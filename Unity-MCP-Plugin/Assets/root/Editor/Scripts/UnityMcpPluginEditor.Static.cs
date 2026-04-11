@@ -214,6 +214,16 @@ namespace com.IvanMurzak.Unity.MCP
             }
         }
 
+        public static string? DouyinWorldDebuggerExecutablePath
+        {
+            get => Instance.unityConnectionConfig.DouyinWorldDebuggerExecutablePath;
+            set
+            {
+                Instance.unityConnectionConfig.DouyinWorldDebuggerExecutablePath = value;
+                NotifyChanged(Instance.unityConnectionConfig);
+            }
+        }
+
         // 'new' is intentional: static dispatch on the subtype, instance logic lives in the base.
         public static new ReadOnlyReactiveProperty<HubConnectionState> ConnectionState
             => ((UnityMcpPlugin)Instance).ConnectionState;
